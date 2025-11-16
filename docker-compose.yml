@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: college-management
+    ports:
+      - "5000:3000"
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: college_management
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      SESSION_SECRET: dev_secret_key
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      BASE_URL: http://localhost:5000
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: admin123
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - college-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: college-management-db
+    environment:
+      POSTGRES_DB: college_management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - college-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  college-network:
+    driver: bridge
